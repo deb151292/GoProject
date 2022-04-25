@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/deb151292/gqlgen-todos/graph/generated"
@@ -16,6 +17,10 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 	log.Println("abcd1")
 	a := model.Todo{}
 	return &a, errors.New("abcd")
+}
+
+func (r *mutationResolver) CreateQR(ctx context.Context, input string) (string, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
