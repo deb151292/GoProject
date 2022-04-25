@@ -4,18 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
+	dbconst "github.com/deb151292/gqlgen-todos/graph/DBconst"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
-
-// const (
-// 	host     =
-// 	port     = "5432"
-// 	user     = "postgres"
-// 	password = "abc123"
-// 	dbname   = "postgres"
-// )
 
 var pool *pgxpool.Pool
 
@@ -27,7 +21,8 @@ func InitDbPool() {
 
 	// for the time being, let's hard code it as follows.
 	// ensure to change values as needed.
-	databaseUrl := "host=" + DBConfig.Host + " port=" + port + " user=" + user + " password=" + password + " dbname=" + dbname
+
+	databaseUrl := "host=" + dbconst.Host + " port=" + strconv.Itoa(dbconst.Port) + " user=" + dbconst.User + " password=" + dbconst.Password + " dbname=" + dbconst.Dbname
 
 	// this returns connection pool
 	dbPool, err := pgxpool.Connect(context.Background(), databaseUrl)

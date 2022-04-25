@@ -1,4 +1,4 @@
-package db
+package dbconst
 
 const (
 	Host     = "localhost"
