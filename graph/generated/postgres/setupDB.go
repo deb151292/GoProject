@@ -9,13 +9,13 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-const (
-	host     = "localhost"
-	port     = "5432"
-	user     = "postgres"
-	password = "your-password"
-	dbname   = "calhounio_demo"
-)
+// const (
+// 	host     =
+// 	port     = "5432"
+// 	user     = "postgres"
+// 	password = "abc123"
+// 	dbname   = "postgres"
+// )
 
 var pool *pgxpool.Pool
 
@@ -27,7 +27,7 @@ func InitDbPool() {
 
 	// for the time being, let's hard code it as follows.
 	// ensure to change values as needed.
-	databaseUrl := "host=" + host + " port=" + port + " user=" + user + " password=" + password + " dbname=" + dbname
+	databaseUrl := "host=" + DBConfig.Host + " port=" + port + " user=" + user + " password=" + password + " dbname=" + dbname
 
 	// this returns connection pool
 	dbPool, err := pgxpool.Connect(context.Background(), databaseUrl)
