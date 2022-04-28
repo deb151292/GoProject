@@ -19,6 +19,11 @@ func (r *queryResolver) CreateQR(ctx context.Context, input model.InputStr) (*mo
 	return m, err
 }
 
+func (r *queryResolver) FileMove(ctx context.Context, input *model.Paths) (*model.Response, error) {
+	massage, err := logics.Moving(input)
+	return massage, err
+}
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 

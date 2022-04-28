@@ -5,10 +5,23 @@
 type SuccessMsg {
   OutputStr: String!
 }
+
 input InputStr {
   StudentName: String!
   Pass: Boolean!
 }
+
+type response {
+  err: Boolean!
+  massage:String!
+}
+
+input Paths{
+  Destination_path: String!
+  File_Destination_path: String!
+}
+
 type Query {
   createQR (input: InputStr!): SuccessMsg!
+  fileMove(input: Paths): response
 }

@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func move(spath, dpath string) error {
+func Move(spath, dpath string) error {
 	// oldLocation := "/var/www/html/test.txt"
 	// newLocation := "/var/www/html/src/test.txt"
 	err := os.Rename(spath, dpath)

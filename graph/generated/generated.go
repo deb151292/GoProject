@@ -45,15 +45,22 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Query struct {
 		CreateQR func(childComplexity int, input model.InputStr) int
+		FileMove func(childComplexity int, input *model.Paths) int
 	}
 
 	SuccessMsg struct {
 		OutputStr func(childComplexity int) int
 	}
+
+	Response struct {
+		Err     func(childComplexity int) int
+		Massage func(childComplexity int) int
+	}
 }
 
 type QueryResolver interface {
 	CreateQR(ctx context.Context, input model.InputStr) (*model.SuccessMsg, error)
+	FileMove(ctx context.Context, input *model.Paths) (*model.Response, error)
 }
 
 type executableSchema struct {
@@ -83,12 +90,38 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.CreateQR(childComplexity, args["input"].(model.InputStr)), true
 
+	case "Query.fileMove":
+		if e.complexity.Query.FileMove == nil {
+			break
+		}
+
+		args, err := ec.field_Query_fileMove_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FileMove(childComplexity, args["input"].(*model.Paths)), true
+
 	case "SuccessMsg.OutputStr":
 		if e.complexity.SuccessMsg.OutputStr == nil {
 			break
 		}
 
 		return e.complexity.SuccessMsg.OutputStr(childComplexity), true
+
+	case "response.err":
+		if e.complexity.Response.Err == nil {
+			break
+		}
+
+		return e.complexity.Response.Err(childComplexity), true
+
+	case "response.massage":
+		if e.complexity.Response.Massage == nil {
+			break
+		}
+
+		return e.complexity.Response.Massage(childComplexity), true
 
 	}
 	return 0, false
@@ -147,14 +180,25 @@ var sources = []*ast.Source{
 type SuccessMsg {
   OutputStr: String!
 }
+
 input InputStr {
   StudentName: String!
   Pass: Boolean!
 }
 
+type response {
+  err: Boolean!
+  massage:String!
+}
+
+input Paths{
+  Destination_path: String!
+  File_Destination_path: String!
+}
 
 type Query {
   createQR (input: InputStr!): SuccessMsg!
+  fileMove(input: Paths): response
 }
 `, BuiltIn: false},
 }
@@ -186,6 +230,21 @@ func (ec *executionContext) field_Query_createQR_args(ctx context.Context, rawAr
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNInputStr2githubᚗcomᚋdeb151292ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐInputStr(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_fileMove_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.Paths
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOPaths2ᚖgithubᚗcomᚋdeb151292ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐPaths(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -285,6 +344,64 @@ func (ec *executionContext) fieldContext_Query_createQR(ctx context.Context, fie
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_createQR_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_fileMove(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_fileMove(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FileMove(rctx, fc.Args["input"].(*model.Paths))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Response)
+	fc.Result = res
+	return ec.marshalOresponse2ᚖgithubᚗcomᚋdeb151292ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_fileMove(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "err":
+				return ec.fieldContext_response_err(ctx, field)
+			case "massage":
+				return ec.fieldContext_response_massage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type response", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_fileMove_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2233,6 +2350,94 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _response_err(ctx context.Context, field graphql.CollectedField, obj *model.Response) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_response_err(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Err, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_response_err(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "response",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _response_massage(ctx context.Context, field graphql.CollectedField, obj *model.Response) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_response_massage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Massage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_response_massage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "response",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
@@ -2259,6 +2464,37 @@ func (ec *executionContext) unmarshalInputInputStr(ctx context.Context, obj inte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Pass"))
 			it.Pass, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPaths(ctx context.Context, obj interface{}) (model.Paths, error) {
+	var it model.Paths
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "Destination_path":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Destination_path"))
+			it.DestinationPath, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "File_Destination_path":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("File_Destination_path"))
+			it.FileDestinationPath, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2308,6 +2544,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "fileMove":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_fileMove(ctx, field)
 				return res
 			}
 
@@ -2793,6 +3049,47 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
+var responseImplementors = []string{"response"}
+
+func (ec *executionContext) _response(ctx context.Context, sel ast.SelectionSet, obj *model.Response) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, responseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("response")
+		case "err":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._response_err(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "massage":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._response_massage(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
@@ -3125,6 +3422,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) unmarshalOPaths2ᚖgithubᚗcomᚋdeb151292ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐPaths(ctx context.Context, v interface{}) (*model.Paths, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPaths(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -3341,6 +3646,13 @@ func (ec *executionContext) marshalO__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 		return graphql.Null
 	}
 	return ec.___Type(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOresponse2ᚖgithubᚗcomᚋdeb151292ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐResponse(ctx context.Context, sel ast.SelectionSet, v *model.Response) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._response(ctx, sel, v)
 }
 
 // endregion ***************************** type.gotpl *****************************

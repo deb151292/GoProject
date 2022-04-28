@@ -7,6 +7,16 @@ type InputStr struct {
 	Pass        bool   `json:"Pass"`
 }
 
+type Paths struct {
+	DestinationPath     string `json:"Destination_path"`
+	FileDestinationPath string `json:"File_Destination_path"`
+}
+
 type SuccessMsg struct {
 	OutputStr string `json:"OutputStr"`
+}
+
+type Response struct {
+	Err     bool   `json:"err"`
+	Massage string `json:"massage"`
 }
